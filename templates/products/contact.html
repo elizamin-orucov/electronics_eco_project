@@ -531,6 +531,11 @@
                                 <form class="contact-form-style" id="contact-form" method="POST">
                                     {% csrf_token %}
                                     <div class="row">
+                                        {% if form.errors %}
+                                            {% for error in form.error %}
+                                        <h1>{{ error }}</h1>
+                                            {% endfor %}
+                                            {% endif %}
                                         <div class="col-lg-6">
                                             {{form.name}}
                                         </div>
@@ -546,7 +551,6 @@
                                         </div>
                                     </div>
                                 </form>
-                                <p class="form-messege"></p>
                             </div>
                         </div>
                         <div class="col-12">

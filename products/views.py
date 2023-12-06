@@ -20,6 +20,10 @@ def contact_us_view(request):
         form = ContactForm(request.POST or None)
         if form.is_valid():
             form.save()
+        else:
+            print("--------------------------------------------------------")
+            print(form.errors)
+            print("--------------------------------------------------------")
 
     context = {"form": form}
     return render(request, "products/contact.html", context)

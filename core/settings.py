@@ -30,6 +30,7 @@ DJANGO_APPS = [
 
 LOCAL_APPS = [
     "products",
+    "accounts",
 ]
 
 THIRD_PARTY_APPS = [
@@ -50,6 +51,8 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'core.urls'
+
+AUTH_USER_MODEL = "accounts.MyUser"
 
 TEMPLATES = [
     {
