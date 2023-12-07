@@ -127,7 +127,7 @@ class RegisterForm(forms.ModelForm):
         password = self.cleaned_data.pop("password_confirm")
 
         user = User.objects.create(
-            **self.cleaned_data
+            **self.cleaned_data, is_active=False
         )
         user.set_password(password)
         user.save()
