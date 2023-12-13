@@ -1,6 +1,10 @@
 from django.db import models
 from services.mixin import DateMixin
+from colorfield.fields import ColorField
 from ckeditor.fields import RichTextField
+from mptt.models import MPTTModel, TreeForeignKey
+from services.uploader import Uploader
+from services.choices import year_choice
 
 
 class ContactUs(DateMixin):
@@ -28,6 +32,71 @@ class Faq(models.Model):
     class Meta:
         verbose_name_plural = "FAQ"
         verbose_name = "question"
+
+
+class Category(DateMixin, MPTTModel):
+    name = models.CharField(max_length=150, unique=True)
+    icon = models.ImageField(upload_to=Uploader.category_uploader, blank=True, null=True)
+    parent = TreeForeignKey("self", on_delete=models.CASCADE, blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name_plural = "Categories"
+        verbose_name = "Category"
+
+
+class Brand(DateMixin):
+    brand = models.CharField(max_length=150)
+    logo = models.ImageField(Uploader.brand_logo_uploader)
+    description = RichTextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.brand
+
+
+class Color(DateMixin):
+    color = ColorField()
+
+    def __str__(self):
+        return self.color
+
+
+class Product(DateMixin):
+    name = models.CharField(max_length=250)
+    brand = models.ForeignKey(Brand, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    color = models.ManyToManyField(Color, blank=True)
+    description = RichTextField()
+    code = models.SlugField(unique=True, editable=False)
+    dimension = models.CharField(max_length=150)
+    weight = models.FloatField()
+    price = models.FloatField()
+    discount_interest = models.IntegerField(blank=True, null=True)
+    year = models.IntegerField(choices=year_choice())
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name_plural = "Products"
+        verbose_name = "Product"
+
+
+class ProductImage(DateMixin):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to=Uploader.product_image_uploader)
+
+    def __str__(self):
+        return self.product.name
+
+    class Meta:
+        verbose_name_plural = "Images"
+        verbose_name = "Image"
+
+
+
 
 
 
