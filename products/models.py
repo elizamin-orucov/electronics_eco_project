@@ -5,6 +5,8 @@ from ckeditor.fields import RichTextField
 from mptt.models import MPTTModel, TreeForeignKey
 from services.uploader import Uploader
 from services.choices import year_choice
+from services.slugify import slugify
+from services.generator import CodeGenerator
 
 
 class ContactUs(DateMixin):
@@ -70,6 +72,7 @@ class Product(DateMixin):
     color = models.ManyToManyField(Color, blank=True)
     description = RichTextField()
     code = models.SlugField(unique=True, editable=False)
+    slug = models.SlugField(unique=True, editable=False)
     dimension = models.CharField(max_length=150)
     weight = models.FloatField()
     price = models.FloatField()
@@ -78,6 +81,11 @@ class Product(DateMixin):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        self.code = CodeGenerator().create_product_shortcode(size=8, model_=self.__class__)
+        return super().save(*args, **kwargs)
 
     class Meta:
         verbose_name_plural = "Products"

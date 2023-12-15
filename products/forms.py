@@ -17,10 +17,7 @@ class ContactForm(forms.ModelForm):
         name = self.cleaned_data.get("name")
         email = self.cleaned_data.get("email")
         if name[0].islower:
-            # self.add_error("name", "Adin ilk herifi boyuk olmalidir.")
-            raise forms.ValidationError("ad kicikdi")
-        if email == "test@gmail.com":
-            raise forms.ValidationError("mail kicikdi")
+            raise forms.ValidationError("Adin ilk herifi boyuk olmalidir.")
         return self.cleaned_data
 
 
