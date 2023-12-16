@@ -27,3 +27,7 @@ def contact_us_view(request):
 
     context = {"form": form}
     return render(request, "products/contact.html", context)
+
+
+def index_view(request):
+    return render(request, "products/index.html", status=200)

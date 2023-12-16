@@ -1,6 +1,6 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, get_user_model
-from .forms import LoginForm, RegisterForm
+from .forms import LoginForm, RegisterForm, ResetPasswordForm, ResetPasswordComplete
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import smart_str, smart_bytes
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
@@ -62,4 +62,51 @@ def activation_view_complete(request, uuid, token):
     user.is_active=True
     user.save()
     return redirect("/")
+
+
+def reset_password_view(request):
+    form = ResetPasswordForm()
+
+    if request.method == "POST":
+        form = ResetPasswordForm(request.POST or None)
+        if form.is_valid():
+            email = form.cleaned_data.get("email")
+            user = get_object_or_404(User, email=email)
+            uuid = urlsafe_base64_encode(smart_bytes(user.slug))
+            token = PasswordResetTokenGenerator().make_token(user)
+            link = request.build_absolute_uri(reverse_lazy("accounts:reset_password_complete", kwargs={"uuid": uuid, "token": token}))
+            send_mail(
+                "Reset Password",
+                f"Please click link the bellow\n{link}",
+                settings.EMAIL_HOST_USER,
+                [email],
+                fail_silently=True
+            )
+            return redirect("/")
+    context = {"form": form}
+    return render(request, "accounts/reset_password.html", context)
+
+
+def reset_password_complete(request, uuid, token):
+    slug = smart_str(urlsafe_base64_decode(uuid))
+    user = get_object_or_404(User, slug=slug)
+    form = ResetPasswordComplete(instance=user)
+
+    if not PasswordResetTokenGenerator().check_token(user, token):
+        message = "Link duzgun deil!"
+        messages.error(request, message)
+        return redirect("accounts:login")
+
+    if request.method == "POST":
+        form = ResetPasswordComplete(instance=user, data=request.POST or None)
+
+        if form.is_valid():
+            form.save()
+            return redirect("accounts:login-register")
+
+    context = {"form": form}
+    return render(request, "accounts/reset_password_complete.html", context)
+
+
+
 

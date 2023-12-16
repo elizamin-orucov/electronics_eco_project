@@ -134,3 +134,60 @@ class RegisterForm(forms.ModelForm):
         return user
 
 
+class ResetPasswordForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ("email", )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["email"].widget.attrs.update({"class": "form-control", "placeholder": "enter you mail"})
+
+    def clean(self):
+        email = self.cleaned_data.get("email")
+
+        if not User.objects.filter(email=email).exists():
+            raise forms.ValidationError("This email does not exist.")
+        return self.cleaned_data
+
+
+class ResetPasswordComplete(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput)
+    password_confirm = forms.CharField(widget=forms.PasswordInput)
+
+    class Meta:
+        model = User
+        fields = ("password", "password_confirm")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        placeholders = {"password": "Password", "password_confirm": "Password confirm"}
+        for field in self.fields:
+            self.fields[field].widget.attrs.update({"class": "form-control", "placeholder": placeholders[field]})
+
+    def clean(self):
+        password = self.cleaned_data.get("password")
+        password_confirm = self.cleaned_data.get("password_confirm")
+
+        if password != password_confirm:
+            raise forms.ValidationError("Passwords didn't match.")
+
+        if len(password_confirm) <= 7:
+            raise forms.ValidationError("Password length must be at least 8.")
+
+        if not any(i.isdigit() for i in password_confirm):
+            raise forms.ValidationError("The password must contain at least 1 number and letters.")
+
+        if self.instance.check_password(password_confirm):
+            raise forms.ValidationError("You can't use the old password.")
+
+        return self.cleaned_data
+
+    def save(self):
+        password = self.cleaned_data.get("password")
+        self.instance.set_password(password)
+        self.instance.save()
+        return self.instance
+
+
+
