@@ -32,3 +32,4 @@ def index_view(request):
 def shop_view(request):
     context = {}
     return render(request, "products/shop.html", context)
+
